@@ -1,37 +1,55 @@
-import React from "react";
-import { SafeAreaView, Text, View, StyleSheet, Image, Pressable, Alert, SectionList} from 'react-native';
-import BasicListItem from "../Components/ListItem"
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, Text, View, StyleSheet, Image, Pressable, SectionList} from 'react-native';
+import BasicListItem from "../Components/BasicListItem"
 
-const DATA = [
+export default function Profile() {
+    const [EditMode, SetEditMode] = useState(false);
+    const [ProfData, SetProfData] = useState([
     {
         data: ["Love Languages"], // Title of list. SectionList's take the data from each section for the title.
-        ListContents: "Physical Touch",
+        ListContents: [{ key: "Physical Touch" }, { key: "Gift Giving" }],
     },
-];
+    {
+        data: ["Hobbies"], // Title of list. SectionList's take the data from each section for the title.
+        ListContents: [{ key: "Video games" }, { key: "Being Gay" }],
+    },
+    ]); //FUTURE NOTES: Grab List Data from Mongo Database
 
-export default function App() {
     return (
         <SafeAreaView style={Styles.Main_Container}>
             <View style={Styles.Profile_Picture_Container}>
-                <Image style={Styles.Profile_Picture} source={require('../Images/ProfilePic.png')} />
+                {EditMode ? EditableProfilePicture() : <Image style={Styles.Profile_Picture} source={require('../Images/ProfilePic.png')} />}
             </View>
             <View style={Styles.Username_Container}>
                 <Text style={Styles.Username}>Drew/Luna</Text>
             </View>
             <View style={Styles.EditButton_Container}>
-                <Pressable style={Styles.EditButton} onPress={() => { Alert.alert(DATA[0].ListContents) }}>
+                <Pressable style={Styles.EditButton} onPress={() => { SetEditMode(!EditMode) }}>
                     <Text style={Styles.EditButtonText}>Edit Profile</Text>
                 </Pressable>
             </View>
             <View style={Styles.InformationListContainer}>
                 <SectionList
-                    sections={DATA}
-                    keyExtractor={(item, index) => item + index}
-                    renderItem={({ item, index }) => <BasicListItem title={item} ListContents={DATA[index].ListContents}/>}
+                    sections={ProfData}
+                    keyExtractor={(index) => index}
+                    renderItem={({ item, index }) => <BasicListItem Index={ProfData.findIndex(x => x.data[0] === item)} Data={ProfData} SetData={SetProfData} EditMode={EditMode}/>}
                 />
+            </View>
+            <View>
+                <Pressable style={Styles.Add}> 
+                    
+                </Pressable>
             </View>
         </SafeAreaView>
     )
+
+    function EditableProfilePicture() {
+        return (
+            <Pressable>
+                <Image style={Styles.Profile_Picture} source={require('../Images/ProfilePic2.jpg')}/>
+            </Pressable>
+        )
+    }
 }
 
 const Styles = StyleSheet.create({

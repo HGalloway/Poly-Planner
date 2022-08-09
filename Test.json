@@ -1,0 +1,24 @@
+{
+    "Foxu": {
+        "FirstName": "Hilliard",
+        "LastName": "Galloway",
+        "OtherNames": ["Drew", "Luna"],
+        "DOB": "1/30/2004",
+        "ListData": [
+            {
+                "data": ["Love Languages"], 
+                "ListContents": [
+                    { "key": "Physical Touch"},
+                    { "key": "Gift Giving"}
+                ]
+            },
+            {
+                "data": ["Hobbies"], 
+                "ListContents": [
+                    { "key": "Video games"},
+                    { "key": "Being Gay"}
+                ]
+            }
+        ]
+    }
+}

@@ -1,118 +1,143 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, Text, View, StyleSheet, Image, Pressable, SectionList} from 'react-native';
-import BasicListItem from "../Components/BasicListItem"
+import { SafeAreaView, View, Image, Text, Pressable, SectionList, StyleSheet } from 'react-native';
+
+import { networkErrorAlert } from "../functionFiles/ErrorMessages"
+import BasicListItem from "../components/BasicListItem"
+import {APIADDRESS, APIPORT} from "@env"
 
 export default function Profile() {
-    const [EditMode, SetEditMode] = useState(false);
-    const [ProfData, SetProfData] = useState([
-    {
-        data: ["Love Languages"], // Title of list. SectionList's take the data from each section for the title.
-        ListContents: [{ key: "Physical Touch" }, { key: "Gift Giving" }],
-    },
-    {
-        data: ["Hobbies"], // Title of list. SectionList's take the data from each section for the title.
-        ListContents: [{ key: "Video games" }, { key: "Being Gay" }],
-    },
-    ]); //FUTURE NOTES: Grab List Data from Mongo Database
+    const [editMode, setEditMode] = useState(false);
+    const [listData, setListData] = useState([]);
 
-    return (
-        <SafeAreaView style={Styles.Main_Container}>
-            <View style={Styles.Profile_Picture_Container}>
-                {EditMode ? EditableProfilePicture() : <Image style={Styles.Profile_Picture} source={require('../Images/ProfilePic.png')} />}
-            </View>
-            <View style={Styles.Username_Container}>
-                <Text style={Styles.Username}>Drew/Luna</Text>
-            </View>
-            <View style={Styles.EditButton_Container}>
-                <Pressable style={Styles.EditButton} onPress={() => { SetEditMode(!EditMode) }}>
-                    <Text style={Styles.EditButtonText}>Edit Profile</Text>
-                </Pressable>
-            </View>
-            <View style={Styles.InformationListContainer}>
-                <SectionList
-                    sections={ProfData}
-                    keyExtractor={(index) => index}
-                    renderItem={({ item, index }) => <BasicListItem Index={ProfData.findIndex(x => x.data[0] === item)} Data={ProfData} SetData={SetProfData} EditMode={EditMode}/>}
-                />
-            </View>
-            <View>
-                <Pressable style={Styles.Add}> 
-                    
-                </Pressable>
-            </View>
-        </SafeAreaView>
-    )
+    const getListDataFromDatabase = async () => { 
+        try {
+            const response = await fetch(APIADDRESS + ":" + APIPORT + '/GetListData?Username=Foxu');
+            checkResponse(response);
+        } 
+        catch (error) {
+            handleFetchError();
+        }
+    };
 
-    function EditableProfilePicture() {
+    async function checkResponse(response) {
+        if (response.ok == true){
+            var responseJSON = await response.json();
+            setListData(responseJSON.ListData)
+        }
+        else {
+            networkErrorAlert();
+        }
+    }
+
+    var timesTried = 0
+    function handleFetchError() {
+        if (timesTried < 5) {
+            timesTried++;
+            getListDataFromDatabase()
+        }
+        else {
+            timesTried = 0;
+            networkErrorAlert();  
+        }
+    }
+
+    async function getProfileImageFromDatabase() { 
+        // Get PFP from database once image storing is available. 
+    }
+
+    useEffect(() => {
+        getListDataFromDatabase()
+        getProfileImageFromDatabase()
+    }, []);
+
+    function editableProfilePicture() {
         return (
-            <Pressable>
-                <Image style={Styles.Profile_Picture} source={require('../Images/ProfilePic2.jpg')}/>
+            <Pressable style={[profileStyles.profilePictureContainer, profileStyles.center]}>
+                <Image style={profileStyles.profilePicture} source={require('@images/ProfilePic2.jpg')} />
             </Pressable>
         )
     }
-}
 
-const Styles = StyleSheet.create({
-    Main_Container: {
+    function nonEditableProfilePicture() {
+        return (
+            <View style={[profileStyles.profilePictureContainer, profileStyles.center]}>
+                <Image style={profileStyles.profilePicture} source={require('@images/ProfilePic.png')} />
+            </View>
+        )
+    }
+
+    return (
+        <SafeAreaView style={[profileStyles.mainView, profileStyles.center]}>
+            {editMode ? editableProfilePicture() : nonEditableProfilePicture()}
+            <View style={[profileStyles.usernameContainer, profileStyles.center]}>
+                <Text style={profileStyles.username}>Drew/Luna</Text>
+            </View>
+            <View style={[profileStyles.editButtonContainer, profileStyles.center]}>
+                <Pressable style={profileStyles.editButton} onPress={() => { setEditMode(!editMode) }}>
+                    <Text style={profileStyles.editButtonText}>Edit Profile</Text>
+                </Pressable>
+            </View>
+            <View style={profileStyles.informationListContainer}>
+                <SectionList
+                    sections={listData}
+                    keyExtractor={(index) => index}
+                    renderItem={({ item }) =>
+                        <BasicListItem index={listData.findIndex(x => x.data[0] == item)} listData={listData} setListData={() => setListData} editMode={editMode} />
+                    }
+                />
+            </View>
+            {/* Work on allowing elements to be added to the list */}
+        </SafeAreaView>
+    )
+} 
+
+const profileStyles = StyleSheet.create({
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    mainView: {
         flex: 1,
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
-    Profile_Picture_Container: {
+    profilePictureContainer: {
         flex: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-
     },
-    Profile_Picture: {
-        width: 100,
-        height: 100,
+    profilePicture: {
         borderRadius: 400 / 2,
+        height: 100,
+        width: 100, 
     },
-    Username_Container: {
-        position: 'relative',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    Username: {
+    usernameContainer: {},
+    username: {
         fontSize: 20,
     },
-    EditButton_Container: {
+    editButtonContainer: {
         flex: 1,
-        position: 'relative',
-        alignItems: 'center',
-        justifyContent: 'center',
         padding: 20
     },
-    EditButton: {
-        flex: 1,
+    editButton: {
         backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 30,
         borderColor: 'black',
+        borderRadius: 30,
         borderWidth: 1,
     },
-    EditButtonText: {
+    editButtonText: {
         fontSize: 20,
     },
-    InformationListContainer: {
+    informationListContainer: {
         flex: 5,
         width: "100%",
     },
-    item: {
-        padding: 20,
-        marginVertical: 8
-    },
-    EditButton: {
-        flex: 1,
+    editButton: {
         backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 30,
         borderColor: 'black',
+        borderRadius: 30,
         borderWidth: 1,
+        flex: 1,
+        padding: 20,
     },
-    EditButtonText: {
+    editButtonText: {
         fontSize: 20,
     },
 });

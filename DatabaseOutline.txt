@@ -1,0 +1,12 @@
+Database: 
+	Users:
+		$USERNAME: 
+			password: 
+				$PASSWORD //ENCRYPT OR HASH
+			profile list information:
+				{
+					{
+							data: [$TITLEOFELEMENT],
+							ListContents: [{ key: $ListElement1 }, { key: $ListElement2 }],
+					},
+				}
